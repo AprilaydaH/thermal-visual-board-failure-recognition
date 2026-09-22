@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+
+# Data / models
+*.pt
+*.onnx
+*.h5
+data/raw/
+data/processed/
+data/projects/
+data/models/
+
+# STM32 / Cube
+Debug/
+Release/
+*.o
+*.elf
+*.hex
+*.map
+.mxproject
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.log
