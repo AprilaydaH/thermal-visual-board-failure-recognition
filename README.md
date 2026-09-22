@@ -52,6 +52,9 @@ Recognition starts only after the data path is reliable.
 ## Documents
 
 - [Project plan (Word)](docs/Multimodal_Electronic_Parts_Recognition_Project_Plan.docx)
+- [Software structure](docs/ARCHITECTURE.md)
+- [Recognition stack](docs/RECOGNITION.md)
+- [Acquisition protocol](docs/PROTOCOL.md)
 - [Frame set specification](docs/FRAME_SET.md)
 - [Immediate actions](docs/IMMEDIATE_ACTIONS.md)
 

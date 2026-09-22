@@ -1,0 +1,16 @@
+# Core stack for acquisition, storage and inspection UI (milestone 1).
+# Recognition dependencies live in requirements-ml.txt.
+
+PySide6==6.9.1
+numpy==2.2.6
+opencv-python==4.11.0.86
+
+# Raw frame-set storage: 16-bit radiometric thermal frames
+tifffile==2025.5.10
+
+# Frame-set metadata validation (incomplete sets are rejected)
+pydantic==2.11.7
+
+# Acquisition head transport
+pyserial==3.5
+pyusb==1.3.1

@@ -1,0 +1,19 @@
+# Recognition stack: CNN feature extractors, CfC/LNN fusion, ONNX export.
+#
+#   pip install -r pc/requirements-ml.txt
+#
+# Pinned to the CUDA 12.6 build. For a machine without an NVIDIA GPU, drop the
+# "+cu126" suffixes and the extra index; the CPU wheels are otherwise identical.
+# ONNX Runtime stays on CPU: production inference targets technician laptops.
+# Swap in onnxruntime-gpu only after the CUDA and cuDNN versions are fixed.
+
+--extra-index-url https://download.pytorch.org/whl/cu126
+
+torch==2.7.1+cu126
+torchvision==0.22.1+cu126
+
+# onnx and onnxscript are export dependencies, onnxruntime is the inference one.
+# torch.onnx.export builds the graph, the bench app then runs it with onnxruntime.
+onnx==1.18.0
+onnxscript==0.7.2
+onnxruntime==1.22.0
