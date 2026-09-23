@@ -40,6 +40,38 @@ PC stack (prototype): Python / PySide6, OpenCV, PyTorch detector, OCR, CfC/LNN f
 
 Recognition starts only after the data path is reliable.
 
+## Try the inspection GUI (no hardware)
+
+Python 3.11+, from the repository root:
+
+```powershell
+.\install.ps1
+.\.venv\Scripts\Activate.ps1
+epr inspect --simulate --gui
+```
+
+What you get:
+
+1. A simulated PCB with RGB on the left and a thermal map on the right.
+2. Outlined parts (resistor, capacitor, IC, …).
+3. Click a part → temperature, ΔT, heating rate, and a **NORMAL / ELEVATED / HOT / ABNORMAL** verdict.
+4. Scrub frames with the slider or ← → to watch the board heat up (use **frame 4** for the hot state).
+
+Headless check (same project, no window):
+
+```powershell
+epr inspect --simulate --click 0.45,0.42
+```
+
+| Shortcut | Action |
+|---|---|
+| Click RGB | Probe temperature and part identity |
+| ← → | Previous / next frame |
+| O | Toggle part outlines |
+| Esc | Clear probe |
+
+More detail: [pc/README.md](pc/README.md). MATLAB can read the same stored frame sets — see [matlab/README.md](matlab/README.md).
+
 ## Repository layout
 
 | Path | Content |
@@ -69,9 +101,9 @@ Python 3.11 or newer. Clone the repository, then from its root:
 ```powershell
 .\install.ps1
 .\.venv\Scripts\Activate.ps1
-epr acquire
-epr inspect --simulate --gui
 ```
+
+Then open the GUI with `epr inspect --simulate --gui` (see **Try the inspection GUI** above).
 
 That installs the acquisition stack (sensors, storage, simulator). Recognition needs PyTorch:
 

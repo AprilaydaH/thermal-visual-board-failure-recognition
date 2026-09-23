@@ -65,7 +65,8 @@ def _ensure_frames(project: Path, simulate: bool) -> RawLibrary:
     library = RawLibrary(project)
     regions_path = project / REGIONS_NAME
     if library.ids():
-        if simulate and not regions_path.is_file():
+        if simulate:
+            # Refresh annotations so new fields (e.g. component_class) are present.
             save_regions(regions_path, SimulatedDevice().component_regions())
             logger.info("wrote simulator regions to %s", regions_path)
         return library

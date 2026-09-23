@@ -83,6 +83,8 @@ def test_inspect_click_names_the_hot_package_and_flags_heat():
 
     assert hit.region is not None
     assert hit.region.region_id == "U1"
+    assert hit.region.component_class == "ic"
+    assert "ic" in hit.part_label
     assert hit.assessment is not None
     assert hit.metrics.delta_t_c > 10
     assert hit.assessment.condition is not ThermalCondition.UNKNOWN

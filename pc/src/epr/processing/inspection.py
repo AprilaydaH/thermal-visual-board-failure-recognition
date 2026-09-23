@@ -25,10 +25,12 @@ class InspectionHit:
     def part_label(self) -> str:
         if self.region is None:
             return "unknown part"
-        name = self.region.label or self.region.region_id
+        parts = [self.region.label or self.region.region_id]
+        if self.region.component_class:
+            parts.append(self.region.component_class)
         if self.region.package:
-            return f"{name} ({self.region.package})"
-        return name
+            parts.append(self.region.package)
+        return " · ".join(parts)
 
 
 def inspect_click(
@@ -57,7 +59,11 @@ def inspect_click(
     metrics = component_metrics(frame_set, box, previous=prior_metrics, elapsed_s=elapsed)
 
     package = region.package if region is not None else None
-    component_class = class_from_package(package)
+    component_class = None
+    if region is not None and region.component_class:
+        component_class = region.component_class
+    else:
+        component_class = class_from_package(package)
     assessment = assess_thermal(
         metrics, package=package, component_class=component_class, table=table
     )

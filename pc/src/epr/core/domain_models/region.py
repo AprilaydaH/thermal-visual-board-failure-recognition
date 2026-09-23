@@ -58,3 +58,5 @@ class ComponentRegion(BaseModel):
     source: RegionSource = RegionSource.DETECTOR
     label: str | None = None
     package: str | None = None
+    # resistor, capacitor, ic, … — same vocabulary as ComponentClass values
+    component_class: str | None = None

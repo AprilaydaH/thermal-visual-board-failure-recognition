@@ -42,6 +42,7 @@ class SimulatedComponent:
 
     name: str
     package: str
+    component_class: str
     x: float
     y: float
     width: float
@@ -53,12 +54,12 @@ class SimulatedComponent:
 
 
 DEFAULT_COMPONENTS = (
-    SimulatedComponent("U1", "QFP64", 0.34, 0.30, 0.22, 0.24, 38, 120, 26.0, 18.0),
-    SimulatedComponent("U2", "SOIC8", 0.66, 0.22, 0.12, 0.08, 44, 128, 6.0, 30.0),
-    SimulatedComponent("Q1", "SOT23", 0.20, 0.66, 0.06, 0.05, 40, 118, 11.0, 9.0),
-    SimulatedComponent("C1", "0805", 0.56, 0.62, 0.05, 0.03, 150, 176, 0.0),
-    SimulatedComponent("R1", "0805", 0.66, 0.62, 0.05, 0.03, 30, 96, 1.5, 40.0),
-    SimulatedComponent("J1", "HEADER", 0.12, 0.16, 0.09, 0.14, 20, 70, 0.0),
+    SimulatedComponent("U1", "QFP64", "ic", 0.34, 0.30, 0.22, 0.24, 38, 120, 26.0, 18.0),
+    SimulatedComponent("U2", "SOIC8", "ic", 0.66, 0.22, 0.12, 0.08, 44, 128, 6.0, 30.0),
+    SimulatedComponent("Q1", "SOT23", "transistor", 0.20, 0.66, 0.06, 0.05, 40, 118, 11.0, 9.0),
+    SimulatedComponent("C1", "0805", "capacitor", 0.56, 0.62, 0.05, 0.03, 150, 176, 0.0),
+    SimulatedComponent("R1", "0805", "resistor", 0.66, 0.62, 0.05, 0.03, 30, 96, 1.5, 40.0),
+    SimulatedComponent("J1", "HEADER", "connector", 0.12, 0.16, 0.09, 0.14, 20, 70, 0.0),
 )
 
 BOARD_RGB = (26, 92, 48)
@@ -119,6 +120,7 @@ class SimulatedDevice:
                 source=RegionSource.SIMULATED,
                 label=component.name,
                 package=component.package,
+                component_class=component.component_class,
             )
             for component in self.components
         )

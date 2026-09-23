@@ -49,6 +49,7 @@ def load_regions(path: Path | str) -> list[ComponentRegion]:
                 source=RegionSource(source),
                 label=entry.get("label"),
                 package=entry.get("package"),
+                component_class=entry.get("component_class"),
             )
         )
     return regions

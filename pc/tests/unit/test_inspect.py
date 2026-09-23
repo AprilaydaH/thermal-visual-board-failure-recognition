@@ -11,6 +11,7 @@ def test_inspect_prints_the_thermal_reading(tmp_path, capsys):
     output = capsys.readouterr().out
     assert status == 0
     assert "U1" in output
+    assert "ic" in output
     assert "QFP64" in output
     assert "verdict" in output
     assert "thermal pixel" in output
