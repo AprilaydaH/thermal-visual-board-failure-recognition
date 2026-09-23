@@ -5,7 +5,7 @@ would show per component. The models are untrained, so the classes are meaningle
 this demonstrates is that the data path, the feature layout and the uncertainty reporting work
 end to end. The thermal columns are real measurements and are meaningful now.
 
-    python -m epr.apps.recognition_demo --frames 6 --device auto
+    epr demo --frames 6 --device auto
 """
 
 from __future__ import annotations

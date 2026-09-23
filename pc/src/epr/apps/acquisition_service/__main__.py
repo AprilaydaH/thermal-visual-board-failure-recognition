@@ -4,7 +4,8 @@ Runs the whole data path against the simulated gadget: encoded packets in, valid
 sets out, raw data on disk. It runs as its own process so that a user-interface crash cannot
 corrupt a recording.
 
-    python -m epr.apps.acquisition_service --project data/projects/demo --frames 5
+    epr acquire --frames 5
+    python -m epr.apps.acquisition_service --frames 5
 """
 
 from __future__ import annotations
@@ -15,6 +16,7 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
+from epr.core.paths import data_path
 from epr.device.acquisition import FrameSetAssembler, assemble_stream
 from epr.device.simulator import SimulatedDevice
 from epr.device.transport import ChunkedByteStream
@@ -25,7 +27,12 @@ logger = logging.getLogger("epr.acquisition")
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--project", type=Path, required=True, help="project directory")
+    parser.add_argument(
+        "--project",
+        type=Path,
+        default=None,
+        help="project directory (default: <EPR_HOME>/data/projects/demo)",
+    )
     parser.add_argument("--frames", type=int, default=5, help="number of frame sets")
     parser.add_argument("--seed", type=int, default=0, help="simulator seed")
     parser.add_argument("--rgb-width", type=int, default=1280)
@@ -47,12 +54,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         format="%(levelname)s %(name)s: %(message)s",
     )
 
+    project = args.project or data_path("projects", "demo")
     device = SimulatedDevice(
         seed=args.seed,
         rgb_size=(args.rgb_width, args.rgb_height),
         frame_interval_s=args.frame_interval,
     )
-    recorder = RawRecorder(args.project)
+    recorder = RawRecorder(project)
     assembler = FrameSetAssembler()
     stream = ChunkedByteStream(device.stream(args.frames))
 

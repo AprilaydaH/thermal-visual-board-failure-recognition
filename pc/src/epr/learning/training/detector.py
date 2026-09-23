@@ -73,6 +73,7 @@ class BoardSample:
     board_id: str
     image: np.ndarray
     boxes: np.ndarray
+    scan_id: str = ""
 
 
 def load_boards(instances: Sequence[ComponentInstance]) -> list[BoardSample]:
@@ -92,7 +93,14 @@ def load_boards(instances: Sequence[ComponentInstance]) -> list[BoardSample]:
             logger.warning("could not read %s", image_path)
             continue
         boxes = np.array([instance.box for instance in members], dtype=np.float32)
-        boards.append(BoardSample(board_id=board_id, image=image, boxes=boxes))
+        boards.append(
+            BoardSample(
+                board_id=board_id,
+                image=image,
+                boxes=boxes,
+                scan_id=Path(image_path).stem,
+            )
+        )
 
     if not boards:
         raise ValueError("no readable boards")

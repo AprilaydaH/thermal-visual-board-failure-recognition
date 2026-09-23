@@ -5,10 +5,13 @@ import sys
 
 ACQUISITION_MODULES = [
     "epr.core.domain_models",
+    "epr.core.domain_models.component",
+    "epr.core.paths",
     "epr.device.acquisition",
     "epr.device.simulator",
     "epr.storage.file_storage",
     "epr.processing.thermal",
+    "epr.apps.cli",
     "epr.apps.acquisition_service.__main__",
 ]
 

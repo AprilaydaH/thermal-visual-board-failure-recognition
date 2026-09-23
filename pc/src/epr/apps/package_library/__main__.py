@@ -1,8 +1,8 @@
 """Package dimension library, built from installed KiCad footprints.
 
-    python -m epr.apps.package_library build
-    python -m epr.apps.package_library match --size 2.0x1.25
-    python -m epr.apps.package_library scale --distance 150 --pixels 48
+    epr packages build
+    epr packages match --size 2.0x1.25
+    epr packages scale --distance 150 --pixels 48
 
 `build` reads the footprint libraries and writes a table of physical package sizes. `match`
 answers what a measured component could be. `scale` shows what a box in pixels means in
@@ -19,11 +19,10 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
+from epr.core.paths import data_path
 from epr.processing.scale import CalibratedScale, ThinLensOptics
 from epr.recognition.packages.footprints import default_kicad_root
 from epr.recognition.packages.library import PackageLibrary, SizeQuery
-
-DEFAULT_TABLE = Path("data/external/package_library.json")
 
 logger = logging.getLogger("epr.packages")
 
@@ -41,12 +40,13 @@ def build_parser() -> argparse.ArgumentParser:
     commands = parser.add_subparsers(dest="command", required=True)
 
     build = commands.add_parser("build", help="scan KiCad footprints into a size table")
+    table = data_path("external", "package_library.json")
     build.add_argument("--kicad", type=Path, default=None, help="footprint directory")
-    build.add_argument("--out", type=Path, default=DEFAULT_TABLE)
+    build.add_argument("--out", type=Path, default=table)
     build.add_argument("--body-only", action="store_true", help="keep only F.Fab outlines")
 
     match = commands.add_parser("match", help="look up a measured size")
-    match.add_argument("--table", type=Path, default=DEFAULT_TABLE)
+    match.add_argument("--table", type=Path, default=table)
     match.add_argument("--size", type=_size, required=True, help="millimetres, e.g. 2.0x1.25")
     match.add_argument("--uncertainty", type=float, default=0.0)
     match.add_argument("--family", action="append", default=None)

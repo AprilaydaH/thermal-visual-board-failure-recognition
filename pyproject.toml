@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "epr"
+version = "0.1.0"
+description = "Multimodal electronic parts recognition — PC application"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Dereje Hailemariam" }]
+keywords = ["pcb", "thermal", "inspection", "recognition"]
+dependencies = [
+    "PySide6==6.9.1",
+    "numpy==2.2.6",
+    "opencv-python==4.11.0.86",
+    "tifffile==2025.5.10",
+    "pydantic==2.11.7",
+    "pyserial==3.5",
+    "pyusb==1.3.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.4.1",
+    "pytest-qt==4.5.0",
+    "ruff==0.12.3",
+]
+ml = [
+    "torch>=2.7.1",
+    "torchvision>=0.22.1",
+    "onnx==1.18.0",
+    "onnxscript==0.7.2",
+    "onnxruntime==1.22.0",
+]
+
+[project.scripts]
+epr = "epr.apps.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/AprilaydaH/thermal-visual-board-failure-recognition"
+
+[tool.setuptools.packages.find]
+where = ["pc/src"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["pc/src", "pc/tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "NPY"]
+
+[tool.pytest.ini_options]
+testpaths = ["pc/tests"]
+pythonpath = ["pc/src"]
+qt_api = "pyside6"
+markers = ["slow: trains a model, takes tens of seconds"]

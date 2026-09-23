@@ -56,6 +56,45 @@ Recognition starts only after the data path is reliable.
 - [Recognition stack](docs/RECOGNITION.md)
 - [Acquisition protocol](docs/PROTOCOL.md)
 - [Frame set specification](docs/FRAME_SET.md)
+- [V1 hardware interface](docs/HARDWARE.md)
 - [Immediate actions](docs/IMMEDIATE_ACTIONS.md)
 
 Independent of the PickPlace / Factory I/O Abschlussprojekt.
+
+## Install
+
+Python 3.11 or newer. Clone the repository, then from its root:
+
+```powershell
+.\install.ps1
+.\.venv\Scripts\Activate.ps1
+epr acquire
+```
+
+That installs the acquisition stack (sensors, storage, simulator). Recognition needs PyTorch:
+
+```powershell
+.\install.ps1 -Ml      # any computer, CPU or the default GPU wheels
+.\install.ps1 -Cuda    # this project's CUDA 12.6 pin (NVIDIA GPU)
+```
+
+On Linux or macOS: `./install.sh` or `./install.sh --ml`.
+
+Manual equivalent:
+
+```powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -e ".[dev]"
+```
+
+| Extra | What it adds |
+|---|---|
+| (none) | Acquisition, storage, tests, `epr acquire` / `epr packages` |
+| `[ml]` | CNN, LNN, detector training (`epr train`, `epr demo`) |
+| `pc/requirements-ml.txt` | CUDA 12.6 PyTorch, only if `[ml]` is not enough |
+
+`epr` is the installed command. Data, models and projects go in this checkout's `data/` folder, or in `%LOCALAPPDATA%\epr` on a machine without the source tree. Override with `EPR_HOME`.
+
+Firmware for the STM32 head is not a Python package; it stays in `firmware/` and is built with STM32Cube.

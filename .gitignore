@@ -19,6 +19,10 @@ data/projects/
 data/models/
 data/external/
 
+# Packaging
+build/
+dist/
+
 # STM32 / Cube
 Debug/
 Release/

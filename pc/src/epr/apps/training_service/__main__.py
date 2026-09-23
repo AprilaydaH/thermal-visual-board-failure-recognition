@@ -2,8 +2,9 @@
 
 Trains candidate models in a separate process, as the plan requires.
 
-    python -m epr.apps.training_service cnn --download --epochs 60
-    python -m epr.apps.training_service detector --epochs 40
+    epr train cnn --download --epochs 60
+    epr train detector --epochs 40
+    epr train eval
 
 `cnn` pretrains the RGB stream of the component CNN on public board photographs. `detector`
 trains the class-agnostic component detector on the same boxes.
@@ -20,8 +21,10 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
+import cv2
 import numpy as np
 
+from epr.core.paths import data_path
 from epr.learning.dataset_builder.crop_cache import CropCache, build_crop_cache
 from epr.learning.dataset_builder.download import download_wacv
 from epr.learning.dataset_builder.wacv import (
@@ -39,13 +42,17 @@ from epr.learning.training.cnn import (
     train_rgb_stream,
 )
 from epr.learning.training.detector import (
+    BoardSample,
     DetectorTrainingConfig,
+    evaluate_detector,
     load_boards,
+    load_detector,
     save_detector,
     train_detector,
 )
 from epr.recognition.classification.cnn import CnnConfig
-from epr.recognition.detection.detector import ComponentDetector, DetectorConfig
+from epr.recognition.detection.detector import ComponentDetector, DetectorConfig, detect
+from epr.recognition.detection.heatmap import average_precision
 from epr.recognition.runtime import seed_everything, select_device
 
 logger = logging.getLogger("epr.training")
@@ -54,10 +61,12 @@ logger = logging.getLogger("epr.training")
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     commands = parser.add_subparsers(dest="command", required=True)
+    external = data_path("external")
+    models = data_path("models")
 
     for name in ("cnn", "detector"):
         command = commands.add_parser(name)
-        command.add_argument("--data-dir", type=Path, default=Path("data/external"))
+        command.add_argument("--data-dir", type=Path, default=external)
         command.add_argument("--download", action="store_true", help="fetch the dataset first")
         command.add_argument("--device", default="auto")
         command.add_argument("--seed", type=int, default=0)
@@ -66,7 +75,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     cnn = commands.choices["cnn"]
     cnn.add_argument("--cache-dir", type=Path, default=None)
-    cnn.add_argument("--checkpoint", type=Path, default=Path("data/models/rgb_stream.pt"))
+    cnn.add_argument("--checkpoint", type=Path, default=models / "rgb_stream.pt")
     cnn.add_argument("--crop-size", type=int, default=64)
     cnn.add_argument("--embedding-dim", type=int, default=128)
     cnn.add_argument("--batch-size", type=int, default=128)
@@ -75,11 +84,20 @@ def build_parser() -> argparse.ArgumentParser:
     cnn.add_argument("--rebuild-cache", action="store_true")
 
     detector = commands.choices["detector"]
-    detector.add_argument("--checkpoint", type=Path, default=Path("data/models/detector.pt"))
+    detector.add_argument("--checkpoint", type=Path, default=models / "detector.pt")
     detector.add_argument("--tile-size", type=int, default=256)
     detector.add_argument("--batch-size", type=int, default=16)
     detector.add_argument("--learning-rate", type=float, default=1.5e-3)
     detector.add_argument("--tiles-per-epoch", type=int, default=1024)
+
+    evaluate = commands.add_parser("eval", help="run a saved detector on the WACV boards")
+    evaluate.add_argument("--data-dir", type=Path, default=external)
+    evaluate.add_argument("--download", action="store_true", help="fetch the dataset first")
+    evaluate.add_argument("--device", default="auto")
+    evaluate.add_argument("--seed", type=int, default=0)
+    evaluate.add_argument("--validation-fraction", type=float, default=0.25)
+    evaluate.add_argument("--checkpoint", type=Path, default=models / "detector.pt")
+    evaluate.add_argument("--out", type=Path, default=models / "detector_eval")
     return parser
 
 
@@ -201,13 +219,83 @@ def run_detector(args: argparse.Namespace) -> int:
     return 0
 
 
+def _draw_boxes(
+    image: np.ndarray, boxes: np.ndarray, colour: tuple[int, int, int], thickness: int = 1
+) -> None:
+    for box in boxes:
+        x0, y0, x1, y1 = (int(round(value)) for value in box)
+        cv2.rectangle(image, (x0, y0), (x1, y1), colour, thickness)
+
+
+def _evaluate_split(
+    model, boards: Sequence[BoardSample], *, device, overlay_dir: Path, split: str
+) -> None:
+    overlay_dir.mkdir(parents=True, exist_ok=True)
+    print(f"\n{split}: {len(boards)} scans")
+    print(f"  {'scan':<28} {'gt':>4} {'det':>4} {'AP50':>6} {'rec':>6} {'prec':>6}")
+
+    for board in boards:
+        detection = detect(model, board.image, device=device)
+        ap, recall, precision = average_precision(
+            detection.boxes, detection.scores, board.boxes
+        )
+        name = board.scan_id or board.board_id
+        print(
+            f"  {name:<28} {len(board.boxes):>4} {len(detection.boxes):>4} "
+            f"{ap:>6.3f} {recall:>6.3f} {precision:>6.3f}"
+        )
+
+        canvas = board.image.copy()
+        _draw_boxes(canvas, board.boxes, (40, 180, 40), 1)
+        _draw_boxes(canvas, detection.boxes, (0, 0, 220), 1)
+        safe = "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in name)
+        cv2.imwrite(str(overlay_dir / f"{split}_{safe}.jpg"), canvas)
+
+    metrics = evaluate_detector(model, boards, device=device)
+    print(
+        f"  mean AP50 {metrics.average_precision:.3f}, recall {metrics.recall:.3f}, "
+        f"precision {metrics.precision:.3f}, F1 {metrics.f1:.3f}"
+    )
+
+
+def run_eval(args: argparse.Namespace) -> int:
+    if not args.checkpoint.exists():
+        print(f"No detector checkpoint at {args.checkpoint}. Train with `detector` first.")
+        return 1
+
+    device = select_device(args.device)
+    model = load_detector(args.checkpoint, device=device)
+    _, train_instances, validation_instances = _dataset(args)
+
+    print(f"loaded {args.checkpoint} on {device}")
+    _evaluate_split(
+        model,
+        load_boards(validation_instances),
+        device=device,
+        overlay_dir=args.out,
+        split="validation",
+    )
+    _evaluate_split(
+        model,
+        load_boards(train_instances),
+        device=device,
+        overlay_dir=args.out,
+        split="train",
+    )
+    print(f"\noverlays written to {args.out}")
+    print("green = annotated box, red = detector")
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     seed_everything(args.seed)
 
-    status = run_cnn(args) if args.command == "cnn" else run_detector(args)
-    print("This is a candidate. Promotion needs validation and approval, which are not built.")
+    runners = {"cnn": run_cnn, "detector": run_detector, "eval": run_eval}
+    status = runners[args.command](args)
+    if args.command != "eval":
+        print("This is a candidate. Promotion needs validation and approval, which are not built.")
     return status
 
 

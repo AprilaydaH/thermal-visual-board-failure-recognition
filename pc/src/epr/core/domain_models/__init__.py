@@ -1,3 +1,10 @@
+from epr.core.domain_models.component import (
+    ComponentClass,
+    ComponentRecord,
+    Marking,
+    ThermalCondition,
+    ThermalSnapshot,
+)
 from epr.core.domain_models.frame_set import (
     Channel,
     Environment,
@@ -14,20 +21,29 @@ from epr.core.domain_models.frame_set import (
     ThermalCalibrationMode,
     ThermalChannel,
 )
+from epr.core.domain_models.region import BoundingBox, ComponentRegion, RegionSource
 
 __all__ = [
+    "BoundingBox",
     "Channel",
+    "ComponentClass",
+    "ComponentRecord",
+    "ComponentRegion",
     "Environment",
     "FrameSet",
     "FrameSetMetadata",
     "Geometry",
     "ImageDescriptor",
+    "Marking",
     "NirChannel",
     "PixelFormat",
+    "RegionSource",
     "RgbChannel",
     "SensorState",
     "SensorStatus",
     "ShutterState",
     "ThermalCalibrationMode",
     "ThermalChannel",
+    "ThermalCondition",
+    "ThermalSnapshot",
 ]

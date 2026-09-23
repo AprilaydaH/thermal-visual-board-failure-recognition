@@ -6,37 +6,47 @@ The PC owns image processing, recognition, learning and storage. Raw frame sets 
 
 First goal: connect to the head, store raw RGB + thermal data, click a visible point and inspect the mapped thermal region.
 
+## Install
+
+Install from the **repository root**, not from this folder:
+
+```powershell
+.\install.ps1
+.\.venv\Scripts\Activate.ps1
+epr --help
+```
+
+`pip install -e ".[dev]"` is the same thing. Add `[ml]` or `.\install.ps1 -Cuda` when you need the recognition stack. Details are in the root [README](../README.md).
+
+After that the commands are:
+
+```powershell
+epr acquire --frames 5
+epr demo --frames 6 --device auto
+epr train detector --epochs 40
+epr train cnn --download --epochs 60
+epr train eval
+epr packages build
+```
+
+The older `python -m epr.apps.*` forms still work.
+
 ## Environment
 
-Python 3.11, virtual environment at the repository root.
+Python 3.11, virtual environment at the repository root. `pyproject.toml` at the root is the package definition.
 
-```powershell
-py -3.11 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -r pc\requirements-dev.txt
-```
-
-| File | Content |
+| Extra | Content |
 |---|---|
-| `requirements.txt` | Acquisition, storage and UI stack (milestone 1) |
-| `requirements-dev.txt` | The above plus pytest, pytest-qt, ruff |
-| `requirements-ml.txt` | Recognition stack, installed separately from G4 onwards |
+| (default) | Acquisition, storage and UI stack |
+| `[dev]` | The above plus pytest, pytest-qt, ruff |
+| `[ml]` | Recognition stack; acquisition still runs without it |
 
-`requirements-ml.txt` is pinned to the CUDA 12.6 build of PyTorch; the header explains how to
-switch to CPU wheels. The acquisition stack does not import PyTorch, so a machine that only
-records data can skip it. The model tests skip themselves when it is absent.
+`pc/requirements-ml.txt` is the CUDA 12.6 pin for this machine. The `[ml]` extra uses PyPI, so a computer without NVIDIA can still install recognition.
 
-Install the application package itself in editable mode:
+Checks, from the repository root:
 
 ```powershell
-pip install -e pc --no-deps
-```
-
-Checks, run from `pc/`:
-
-```powershell
-ruff check .
+ruff check pc
 pytest
 ```
 
@@ -50,6 +60,7 @@ import names.
 pc/src/epr/
 ├── core/
 │   ├── domain_models/   frame set, channels, sensor status
+│   ├── paths.py         data location on this machine
 │   └── errors.py
 ├── device/
 │   ├── protocol/        packet wire format and frame-set framing
@@ -72,7 +83,10 @@ pc/src/epr/
 ├── storage/
 │   └── file_storage/    immutable raw recording
 └── apps/
+    ├── cli.py           installed `epr` command
     ├── acquisition_service/
+    ├── training_service/
+    ├── package_library/
     └── recognition_demo/
 ```
 

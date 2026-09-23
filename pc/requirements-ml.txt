@@ -1,5 +1,8 @@
-# Recognition stack: CNN feature extractors, CfC/LNN fusion, ONNX export.
+# CUDA 12.6 PyTorch wheels. pyproject.toml [ml] extra uses the default
+# PyPI index (CPU or the vendor's default). Use this file only when you
+# need the NVIDIA build:
 #
+#   pip install -e ".[dev]"
 #   pip install -r pc/requirements-ml.txt
 #
 # Pinned to the CUDA 12.6 build. For a machine without an NVIDIA GPU, drop the
