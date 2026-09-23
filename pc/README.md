@@ -22,6 +22,7 @@ After that the commands are:
 
 ```powershell
 epr acquire --frames 5
+epr inspect --simulate --gui
 epr demo --frames 6 --device auto
 epr train detector --epochs 40
 epr train cnn --download --epochs 60
@@ -85,6 +86,7 @@ pc/src/epr/
 └── apps/
     ├── cli.py           installed `epr` command
     ├── acquisition_service/
+    ├── inspection/          G1 click-RGB-to-thermal viewer
     ├── training_service/
     ├── package_library/
     └── recognition_demo/
@@ -96,11 +98,23 @@ Runs the full data path against the simulated gadget and writes raw frame sets t
 directory. No hardware required.
 
 ```powershell
-python -m epr.apps.acquisition_service --project data/projects/demo --frames 5
+epr acquire --frames 5
 ```
 
 `--frame-interval` sets the simulated seconds between frame sets and therefore how far the
 components have heated up.
+
+## Inspection (gate G1)
+
+Load stored raw RGB + thermal and map a click on the board to a temperature. No recognizer.
+
+```powershell
+epr inspect --simulate --click 0.45,0.42
+epr inspect --simulate --gui
+```
+
+Registration is identity in normalized coordinates. That is correct for the simulator and
+wrong for the real head until G3 measures a homography.
 
 ## Recognition demo
 

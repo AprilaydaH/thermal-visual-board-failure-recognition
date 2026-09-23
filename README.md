@@ -58,6 +58,7 @@ Recognition starts only after the data path is reliable.
 - [Frame set specification](docs/FRAME_SET.md)
 - [V1 hardware interface](docs/HARDWARE.md)
 - [Immediate actions](docs/IMMEDIATE_ACTIONS.md)
+- [MATLAB frame-set access](matlab/README.md)
 
 Independent of the PickPlace / Factory I/O Abschlussprojekt.
 
@@ -69,6 +70,7 @@ Python 3.11 or newer. Clone the repository, then from its root:
 .\install.ps1
 .\.venv\Scripts\Activate.ps1
 epr acquire
+epr inspect --simulate --gui
 ```
 
 That installs the acquisition stack (sensors, storage, simulator). Recognition needs PyTorch:

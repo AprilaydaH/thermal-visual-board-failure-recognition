@@ -18,6 +18,7 @@ from collections.abc import Sequence
 
 COMMANDS = {
     "acquire": "epr.apps.acquisition_service.__main__",
+    "inspect": "epr.apps.inspection.__main__",
     "demo": "epr.apps.recognition_demo.__main__",
     "train": "epr.apps.training_service.__main__",
     "packages": "epr.apps.package_library.__main__",
@@ -27,6 +28,7 @@ HELP = """Electronic parts recognition — PC application.
 
 Usage:
   epr acquire [options]     record raw frame sets (simulator if no head)
+  epr inspect [options]     click RGB and read the matching thermal region
   epr train <command>       train or evaluate a candidate model
   epr packages <command>    build or query the KiCad package table
   epr demo [options]        run the recognition pipeline on a simulated sequence

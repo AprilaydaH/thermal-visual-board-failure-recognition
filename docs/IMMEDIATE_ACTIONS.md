@@ -16,7 +16,7 @@
 | Gate | Criterion |
 |---|---|
 | G0 Problem | Users confirm a valuable task and price range |
-| G1 Acquisition | Stable RGB and thermal data reach the PC |
+| G1 Acquisition | Stable RGB and thermal data reach the PC; click RGB → thermal temperature (`epr inspect`) |
 | G2 Optics | Markings and heated parts observable at target distance |
 | G3 Calibration | RGB, NIR and thermal repeatably registered |
 | G4 Recognition | Baseline metrics on unseen boards |

@@ -11,8 +11,10 @@ ACQUISITION_MODULES = [
     "epr.device.simulator",
     "epr.storage.file_storage",
     "epr.processing.thermal",
+    "epr.processing.registration",
     "epr.apps.cli",
     "epr.apps.acquisition_service.__main__",
+    "epr.apps.inspection.__main__",
 ]
 
 
