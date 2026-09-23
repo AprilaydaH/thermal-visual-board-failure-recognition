@@ -114,7 +114,9 @@ epr inspect --simulate --gui
 ```
 
 Registration is identity in normalized coordinates. That is correct for the simulator and
-wrong for the real head until G3 measures a homography.
+wrong for the real head until G3 measures a homography. With `--simulate`, annotated regions
+are written so a click names the part and compares ΔT to the thermal limit table
+(`processing/thermal/limits.py`).
 
 ## Recognition demo
 

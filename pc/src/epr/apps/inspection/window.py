@@ -1,4 +1,4 @@
-"""G1 inspection window: click RGB, see the matching thermal region."""
+"""G1 inspection window: click RGB, see thermal region, part name and heat verdict."""
 
 from __future__ import annotations
 
@@ -18,8 +18,10 @@ from PySide6.QtWidgets import (
 )
 
 from epr.core.domain_models.frame_set import Channel, FrameSet
+from epr.core.domain_models.region import ComponentRegion
 from epr.processing.display import colorize_thermal, draw_probe_marks
-from epr.processing.registration import ThermalProbe, probe
+from epr.processing.inspection import inspect_click
+from epr.processing.registration import ThermalProbe
 
 
 class ImagePane(QLabel):
@@ -79,11 +81,18 @@ class ImagePane(QLabel):
 
 
 class InspectionWindow(QMainWindow):
-    def __init__(self, frame_sets: Sequence[FrameSet], *, title: str = "EPR inspection") -> None:
+    def __init__(
+        self,
+        frame_sets: Sequence[FrameSet],
+        *,
+        regions: Sequence[ComponentRegion] = (),
+        title: str = "EPR inspection",
+    ) -> None:
         super().__init__()
         if not frame_sets:
             raise ValueError("no frame sets to inspect")
         self._sets = list(frame_sets)
+        self._regions = list(regions)
         self._index = 0
         self.setWindowTitle(title)
         self.resize(1100, 640)
@@ -118,6 +127,9 @@ class InspectionWindow(QMainWindow):
         self._index = index
         self._show_frame()
 
+    def _previous(self) -> FrameSet | None:
+        return self._sets[self._index - 1] if self._index > 0 else None
+
     def _show_frame(self, mark: ThermalProbe | None = None) -> None:
         frame_set = self._sets[self._index]
         rgb = frame_set.array(Channel.RGB)
@@ -129,19 +141,36 @@ class InspectionWindow(QMainWindow):
         self._thermal.set_image(thermal)
         if mark is None:
             meta = frame_set.metadata
+            hint = (
+                f"{len(self._regions)} annotated parts · "
+                if self._regions
+                else "no part annotations · "
+            )
             self._status.setText(
                 f"frame set {frame_set.frame_set_id}  ·  "
                 f"ambient {meta.environment.ambient_temperature_c:.1f} C  ·  "
                 f"distance {meta.geometry.distance_mm:.0f} mm  ·  "
-                "click RGB to probe thermal"
+                f"{hint}click RGB to probe"
             )
 
     def _on_click(self, x: float, y: float) -> None:
-        mark = probe(self._sets[self._index], x, y)
-        self._show_frame(mark)
+        hit = inspect_click(
+            self._sets[self._index],
+            x,
+            y,
+            regions=self._regions,
+            previous=self._previous(),
+        )
+        self._show_frame(hit.mark)
+        assessment = hit.assessment
+        verdict = ""
+        if assessment is not None:
+            verdict = (
+                f"  ·  {assessment.condition.value.upper()}  ·  {assessment.reason}"
+            )
         self._status.setText(
-            f"RGB ({mark.rgb_pixel[0]}, {mark.rgb_pixel[1]})  →  "
-            f"thermal ({mark.thermal_pixel[0]}, {mark.thermal_pixel[1]})  ·  "
-            f"T {mark.temperature_c:.1f} C  ·  "
-            f"region mean {mark.region_mean_c:.1f} C  max {mark.region_max_c:.1f} C"
+            f"{hit.part_label}  ·  "
+            f"T {hit.mark.temperature_c:.1f} C  ΔT {hit.metrics.delta_t_c:.1f} C  "
+            f"dT/dt {hit.metrics.heating_rate_c_s:.2f} C/s"
+            f"{verdict}"
         )
